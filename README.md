@@ -1,3 +1,3 @@
 # EcommerceReact
 
-##For Pander
+##For Pander.
