@@ -15,6 +15,7 @@ import { lists } from './schema';
 
 // Keystone auth is configured separately - check out the basic auth setup we are importing from our auth file.
 import { withAuth, session } from './auth';
+import {User} from "./schemas/User";
 
 const databaseURL =
     process.env.DATABASE_URL || 'postgres://abarroso@localhost:5432/keystones';
@@ -47,7 +48,10 @@ export default withAuth(
       // For our starter, we check that someone has session data before letting them see the Admin UI.
       isAccessAllowed: (context) => !!context.session?.data,
     },
-    lists,
+    lists: {
+        // Schema items go in here
+        User,
+    },
     session,
   })
 );

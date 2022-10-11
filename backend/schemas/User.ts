@@ -1,4 +1,4 @@
-import { text, password, relationship } from "@keystone-6/core/fields";
+import { text, password } from "@keystone-6/core/fields";
 import { list } from "@keystone-6/core";
 
 export const User = list({
@@ -9,11 +9,7 @@ export const User = list({
             validation: { isRequired: true },
             }
         ),
-        email: text({
-            validation: { isRequired: true },
-            isIndexed: 'unique',
-            isFilterable: true,
-        }),
+        email: text({ isIndexed: 'unique', validation: { isRequired: true } }),
         password: password(),
         // TODO, add roles, cart and orders
     },
