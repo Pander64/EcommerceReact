@@ -16,6 +16,9 @@ import 'dotenv/config';
 import { createAuth } from '@keystone-6/auth';
 import {User} from "./schemas/User";
 import {statelessSessions} from "@keystone-6/core/session";
+import {Product} from "./schemas/Product";
+import {ProductImage} from "./schemas/ProductImage";
+import {insertSeedData} from "./seed-data";
 
 const databaseURL =
     process.env.DATABASE_URL || 'postgres://abarroso@localhost:5432/keystones';
@@ -29,6 +32,7 @@ const { withAuth } = createAuth({
     listKey: 'User',
     identityField: 'email',
     secretField: 'password',
+    sessionData: 'id name email',
     initFirstItem: {
         fields: ['name', 'email', 'password'],
         // TODO: Add in inital roles here
@@ -51,7 +55,13 @@ export default withAuth(
     // the db sets the database provider - we're using sqlite for the fastest startup experience
       db: {
           provider: 'postgresql',
-          url: databaseURL
+          url: databaseURL,
+          async onConnect(keystone) {
+              console.log('Connected to the database!');
+              if (process.argv.includes('--seed-data')) {
+                  await insertSeedData(keystone);
+              }
+          },
       },
     // This config allows us to set up features of the Admin UI https://keystonejs.com/docs/apis/config#ui
     ui: {
@@ -63,7 +73,9 @@ export default withAuth(
     lists: {
         // Schema items go in here
         User,
+        Product,
+        ProductImage,
     },
-      session: statelessSessions(sessionConfig),
+      session: statelessSessions(sessionConfig)
   })
 );
