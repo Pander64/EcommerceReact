@@ -11,19 +11,29 @@ import type { ServerConfig } from '@keystone-6/core/types';
 import 'dotenv/config';
 
 // Look in the schema file for how we define our lists, and how users interact with them through graphql or the Admin UI
-import { lists } from './schema';
 
 // Keystone auth is configured separately - check out the basic auth setup we are importing from our auth file.
-import { withAuth, session } from './auth';
+import { createAuth } from '@keystone-6/auth';
 import {User} from "./schemas/User";
+import {statelessSessions} from "@keystone-6/core/session";
 
 const databaseURL =
     process.env.DATABASE_URL || 'postgres://abarroso@localhost:5432/keystones';
 
 const sessionConfig = {
     maxAge: 60 * 60 * 24 * 360, // How long they stay signed in?
-    secret: process.env.COOKIE_SECRET,
+    secret: process.env.COOKIE_SECRET || 'this secret should only be used in testing',
 };
+
+const { withAuth } = createAuth({
+    listKey: 'User',
+    identityField: 'email',
+    secretField: 'password',
+    initFirstItem: {
+        fields: ['name', 'email', 'password'],
+        // TODO: Add in inital roles here
+    },
+});
 
 export default withAuth(
   // Using the config function helps typescript guide you to the available options.
@@ -45,13 +55,15 @@ export default withAuth(
       },
     // This config allows us to set up features of the Admin UI https://keystonejs.com/docs/apis/config#ui
     ui: {
-      // For our starter, we check that someone has session data before letting them see the Admin UI.
-      isAccessAllowed: (context) => !!context.session?.data,
+        // Show the UI only for poeple who pass this test
+        isAccessAllowed: ({ session }) =>
+            // console.log(session);
+            !!session?.data,
     },
     lists: {
         // Schema items go in here
         User,
     },
-    session,
+      session: statelessSessions(sessionConfig),
   })
 );
